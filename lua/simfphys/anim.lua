@@ -1,6 +1,8 @@
 hook.Add("CalcMainActivity", "simfphysSeatActivityOverride", function(ply)
-	if not IsValid( ply:GetSimfphys() ) then return end
-	
+	local veh = ply:GetSimfphys()
+
+	if not IsValid( veh ) then return end
+
 	if ply.m_bWasNoclipping then 
 		ply.m_bWasNoclipping = nil 
 		ply:AnimResetGestureSlot( GESTURE_SLOT_CUSTOM ) 
@@ -9,13 +11,11 @@ hook.Add("CalcMainActivity", "simfphysSeatActivityOverride", function(ply)
 			ply:SetIK( true )
 		end 
 	end 
-	
-	local IsDriverSeat = ply:IsDrivingSimfphys()
-	
-	ply.CalcIdeal = ACT_HL2MP_SIT
-	ply.CalcSeqOverride = IsDriverSeat and ply:LookupSequence( "drive_jeep" ) or -1
 
-	if not IsDriverSeat and ply:GetAllowWeaponsInVehicle() and IsValid( ply:GetActiveWeapon() ) then
+	ply.CalcIdeal = ACT_HL2MP_SIT
+	ply.CalcSeqOverride = veh:GetSeatAnimation( ply )
+
+	if not ply:IsDrivingSimfphys() and ply:GetAllowWeaponsInVehicle() and IsValid( ply:GetActiveWeapon() ) then
 		
 		local holdtype = ply:GetActiveWeapon():GetHoldType()
 		

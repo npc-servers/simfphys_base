@@ -21,7 +21,7 @@ local V = {
 		
 		SeatOffset = Vector(0,0,-2),
 		SeatPitch = 0,
-		
+
 		SpeedoMax = 120,
 
 		StrengthenSuspension = false,
@@ -203,7 +203,7 @@ local V = {
 		PassengerSeats = {
 			{
 				pos = Vector(21,-22,21),
-				ang = Angle(0,0,9)
+				ang = Angle(0,0,9),
 			}
 		},
 		
@@ -320,11 +320,13 @@ local V = {
 		SeatOffset = Vector(-3,-13.5,21),
 		SeatPitch = 15,
 		SeatYaw = 90,
+		--SeatAnim = "sit_zen", -- driver seat animation
 		
 		PassengerSeats = {
 			{
 				pos = Vector(0,-14,-12),
-				ang = Angle(0,-90,0)
+				ang = Angle(0,-90,0),
+				--anim = "sit_zen", -- passenger seat animation
 			}
 		},
 		

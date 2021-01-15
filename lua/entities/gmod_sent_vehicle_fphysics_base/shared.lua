@@ -172,3 +172,46 @@ end
 function ENT:GetVehicleClass()
 	return "these are not the droids you are looking for"
 end
+
+function ENT:GetSeatAnimation( ply )
+	if not IsValid( ply ) or not ply:IsPlayer() then return -1 end
+
+	local Pod = ply:GetVehicle()
+
+	if not IsValid( Pod ) then return -1 end
+
+	if Pod == self:GetDriverSeat() then 
+
+		if isstring( self.SeatAnim ) then
+			return ply:LookupSequence( self.SeatAnim )
+		else
+			if not self.HasCheckedSeat then -- extra check for client
+				self.HasCheckedSeat = true
+				self.SeatAnim = list.Get( "simfphys_vehicles" )[ self:GetSpawn_List() ].Members.SeatAnim
+			end
+
+			return ply:LookupSequence( "drive_jeep" ) 
+		end
+	end
+
+	if not istable( self.PassengerSeats ) then -- on client self.PassengerSeats is always nil
+
+		if not self.HasCheckedpSeats then
+			self.HasCheckedpSeats = true
+
+			self.PassengerSeats = list.Get( "simfphys_vehicles" )[ self:GetSpawn_List() ].Members.PassengerSeats
+		end
+
+		return -1
+	end
+
+	local pSeatTBL = self.PassengerSeats[ Pod:GetNWInt( "pPodIndex", -1 ) - 1 ]
+
+	if not istable( pSeatTBL ) then return -1 end -- not taking any chances
+
+	local seq = pSeatTBL.anim
+
+	if not isstring( seq ) then return -1 end -- NOT A SINGLE ONE
+
+	return ply:LookupSequence( seq )
+end
