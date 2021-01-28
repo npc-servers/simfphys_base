@@ -144,7 +144,7 @@ function ENT:ExplodeVehicle()
 		bprop:SetColor( Col )
 		bprop:SetSkin( skin )
 		for i = 0, self:GetNumBodyGroups() do
-			bprop.SetBodygroup(i, self:GetBodygroup(i))
+			bprop:SetBodygroup(i, self:GetBodygroup(i))
 		end
 		
 		self.Gib = bprop
