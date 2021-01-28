@@ -13,7 +13,7 @@ hook.Add("CalcMainActivity", "simfphysSeatActivityOverride", function(ply)
 	end 
 
 	ply.CalcIdeal = ACT_HL2MP_SIT
-	ply.CalcSeqOverride = veh:GetSeatAnimation( ply )
+	ply.CalcSeqOverride = isfunction( veh.GetSeatAnimation ) and veh:GetSeatAnimation( ply ) or -1
 
 	if not ply:IsDrivingSimfphys() and ply:GetAllowWeaponsInVehicle() and IsValid( ply:GetActiveWeapon() ) then
 		
