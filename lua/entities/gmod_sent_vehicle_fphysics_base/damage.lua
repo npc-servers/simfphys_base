@@ -120,7 +120,7 @@ function ENT:ExplodeVehicle()
 			prop:Activate()
 			prop.DoNotDuplicate = true
 			bprop:DeleteOnRemove( prop )
-			bprop.Gibs[i] = prop
+			bprop.Gibs[i-1] = prop
 			
 			local PhysObj = prop:GetPhysicsObject()
 			if IsValid( PhysObj ) then
