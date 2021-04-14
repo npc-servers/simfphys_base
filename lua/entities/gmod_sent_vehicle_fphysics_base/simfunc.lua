@@ -47,6 +47,8 @@ end
 function ENT:SimulateAirControls(tilt_forward,tilt_back,tilt_left,tilt_right)
 	if self:IsDriveWheelsOnGround() then return end
 	
+	if hook.Run( "simfphysAirControl", tilt_forward, tilt_back, tilt_left, tilt_right) then return end
+	
 	local PObj = self:GetPhysicsObject()
 	
 	local TiltForce = ((self.Right * (tilt_right - tilt_left) * 1.8) + (self.Forward * (tilt_forward - tilt_back) * 6)) * math.acos( math.Clamp( self.Up:Dot(Vector(0,0,1)) ,-1,1) ) * (180 / math.pi) * self.Mass

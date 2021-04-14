@@ -109,6 +109,7 @@ function ENT:ExplodeVehicle()
 			ply:AddCleanup( "Gibs", bprop )
 		end
 		
+		bprop.Gibs = {}
 		for i = 2, table.Count( self.GibModels ) do
 			local prop = ents.Create( "gmod_sent_vehicle_fphysics_gib" )
 			prop:SetModel( self.GibModels[i] )			
@@ -119,6 +120,7 @@ function ENT:ExplodeVehicle()
 			prop:Activate()
 			prop.DoNotDuplicate = true
 			bprop:DeleteOnRemove( prop )
+			bprop.Gibs[i] = prop
 			
 			local PhysObj = prop:GetPhysicsObject()
 			if IsValid( PhysObj ) then
@@ -158,6 +160,7 @@ function ENT:ExplodeVehicle()
 		end
 		
 		if self.CustomWheels == true and not self.NoWheelGibs then
+			bprop.Wheels = {}
 			for i = 1, table.Count( self.GhostWheels ) do
 				local Wheel = self.GhostWheels[i]
 				if IsValid(Wheel) then
@@ -172,6 +175,7 @@ function ENT:ExplodeVehicle()
 					prop:GetPhysicsObject():SetMass( 20 )
 					prop.DoNotDuplicate = true
 					bprop:DeleteOnRemove( prop )
+					bprop.Wheels[i] = prop
 					
 					simfphys.SetOwner( ply , prop )
 				end
@@ -199,11 +203,15 @@ function ENT:ExplodeVehicle()
 	
 	self:OnDestroyed()
 	
+	hook.Run( "simfphysOnDestroyed", self, self.Gib )
+	
 	self:Remove()
 end
 
 function ENT:OnTakeDamage( dmginfo )
 	if not self:IsInitialized() then return end
+	
+	if hook.Run( "simfphysOnTakeDamage", self, dmginfo ) then return end
 	
 	local Damage = dmginfo:GetDamage() 
 	local DamagePos = dmginfo:GetDamagePosition() 
@@ -270,6 +278,9 @@ local function Spark( pos , normal , snd )
 end
 
 function ENT:PhysicsCollide( data, physobj )
+
+	if hook.Run( "simfphysPhysicsCollide", self, data, physobj ) then return end
+
 	if IsValid( data.HitEntity ) then
 		if data.HitEntity:IsNPC() or data.HitEntity:IsNextBot() or data.HitEntity:IsPlayer() then
 			Spark( data.HitPos , data.HitNormal , "MetalVehicle.ImpactSoft" )

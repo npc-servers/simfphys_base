@@ -578,6 +578,7 @@ function ENT:SetupVehicle()
 	
 	self.EnableSuspension = 1
 	self:OnSpawn()
+	hook.Run( "simfphysOnSpawn", self )
 end
 
 function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , poseposition, suspensiontravel, constant, damping, rdamping)
