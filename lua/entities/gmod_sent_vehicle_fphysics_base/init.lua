@@ -801,7 +801,7 @@ end
 function ENT:StopEngine()
 	if self:EngineActive() then
 		
-		if hook.Run( "simfphysStopEngine", self ) return end
+		if hook.Run( "simfphysStopEngine", self ) then return end
 		
 		self:EmitSound( "vehicles/jetski/jetski_off.wav" )
 
@@ -830,7 +830,7 @@ function ENT:StartEngine( bIgnoreSettings )
 	
 	if not self:EngineActive() then
 	
-		if hook.Run( "simfphysStartEngine", self, bIgnoreSettings ) return end
+		if hook.Run( "simfphysStartEngine", self, bIgnoreSettings ) then return end
 		
 		if not bIgnoreSettings then
 			self.CurrentGear = 2
