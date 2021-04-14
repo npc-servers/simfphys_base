@@ -79,6 +79,8 @@ hook.Add( "simfphysStopEngine", "simf_hook_stopengine", function() end )
 hook.Add( "simfphysAirControl", "simf_hook_aircontrol", function() end )
 --full repair hook (called by repair tool only)
 hook.Add( "simfphysOnRepair", "simf_hook_onrepair", function() end )
+--use hook (return true to disable)
+hook.Add( "simfphysUse", "simf_hook_use", function() end )
 
 function simfphys.IsCar( ent )
 	if not IsValid( ent ) then return false end

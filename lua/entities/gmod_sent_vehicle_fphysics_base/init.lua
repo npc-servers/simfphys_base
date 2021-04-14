@@ -1002,6 +1002,8 @@ end
 
 function ENT:Use( ply )
 	if not IsValid( ply ) then return end
+	
+	if hook.Run( "simfphysUse", self, ply ) then return end
 
 	if self:GetIsVehicleLocked() or self:HasPassengerEnemyTeam( ply ) then 
 		self:EmitSound( "doors/default_locked.wav" )
