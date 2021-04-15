@@ -57,31 +57,6 @@ simfphys.gravel = CreateConVar( "sv_simfphys_traction_gravel", "1", {FCVAR_REPLI
 simfphys.rock = CreateConVar( "sv_simfphys_traction_rock", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE})
 simfphys.wood = CreateConVar( "sv_simfphys_traction_wood", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE})
 
---spawn and tick hooks
-hook.Add( "simfphysOnSpawn", "simf_hook_spawn", function() end )
-hook.Add( "simfphysOnTick", "simf_hook_tick", function() end )
---delete and destroyed hooks
-hook.Add( "simfphysOnDelete", "simf_hook_delete", function() end )
-hook.Add( "simfphysOnDestroyed", "simf_hook_destroyed", function() end )
---damage hooks (return true to disable)
-hook.Add( "simfphysOnTakeDamage", "simf_hook_ontakedamage", function() end )
-hook.Add( "simfphysPhysicsCollide", "simf_hook_physicscollide", function() end )
---fire and smoke hooks (return true to disable)
-hook.Add( "simfphysOnFire", "simf_hook_onfire", function() end )
-hook.Add( "simfphysOnSmoke", "simf_hook_onsmoke", function() end )
---lock and unlock hooks (return true to disable)
-hook.Add( "simfphysLock", "simf_hook_lock", function() end )
-hook.Add( "simfphysUnlock", "simf_hook_unlock", function() end )
---engine start and stop hooks (return true to disable)
-hook.Add( "simfphysStartEngine", "simf_hook_startengine", function() end )
-hook.Add( "simfphysStopEngine", "simf_hook_stopengine", function() end )
---air control hook (return true to disable)
-hook.Add( "simfphysAirControl", "simf_hook_aircontrol", function() end )
---full repair hook (called by repair tool only)
-hook.Add( "simfphysOnRepair", "simf_hook_onrepair", function() end )
---use hook (return true to disable)
-hook.Add( "simfphysUse", "simf_hook_use", function() end )
-
 function simfphys.IsCar( ent )
 	if not IsValid( ent ) then return false end
 	
