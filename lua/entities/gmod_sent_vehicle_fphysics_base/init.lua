@@ -801,7 +801,7 @@ end
 function ENT:StopEngine()
 	if self:EngineActive() then
 		
-		if hook.Run( "simfphysStopEngine", self ) then return end
+		if hook.Run( "simfphysOnEngine", self, false, bIgnoreSettings ) then return end
 		
 		self:EmitSound( "vehicles/jetski/jetski_off.wav" )
 
@@ -830,7 +830,7 @@ function ENT:StartEngine( bIgnoreSettings )
 	
 	if not self:EngineActive() then
 	
-		if hook.Run( "simfphysStartEngine", self, bIgnoreSettings ) then return end
+		if hook.Run( "simfphysOnEngine", self, true, bIgnoreSettings ) then return end
 		
 		if not bIgnoreSettings then
 			self.CurrentGear = 2
@@ -916,13 +916,13 @@ function ENT:SteerVehicle( steer )
 end
 
 function ENT:Lock()
-	if hook.Run( "simfphysLock", self ) then return end
+	if hook.Run( "simfphysOnLock", self, true ) then return end
 	self:SetIsVehicleLocked( true )
 	self:EmitSound( "doors/latchlocked2.wav" )
 end
 
 function ENT:UnLock()
-	if hook.Run( "simfphysUnlock", self ) then return end
+	if hook.Run( "simfphysOnLock", self, false ) then return end
 	self:SetIsVehicleLocked( false )
 	self:EmitSound( "doors/latchunlocked1.wav" )
 end
