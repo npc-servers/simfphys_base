@@ -55,6 +55,8 @@ function ENT:Think()
 	
 	self:OnTick()
 	
+	hook.Run( "simfphysOnTick", self )
+	
 	self.NextTick = self.NextTick or 0
 	if self.NextTick < Time then
 		self.NextTick = Time + 0.025
@@ -798,6 +800,9 @@ end
 
 function ENT:StopEngine()
 	if self:EngineActive() then
+		
+		if hook.Run( "simfphysOnEngine", self, false, bIgnoreSettings ) then return end
+		
 		self:EmitSound( "vehicles/jetski/jetski_off.wav" )
 
 		self.EngineRPM = 0
@@ -824,6 +829,9 @@ function ENT:StartEngine( bIgnoreSettings )
 	if not self:CanStart() then return end
 	
 	if not self:EngineActive() then
+	
+		if hook.Run( "simfphysOnEngine", self, true, bIgnoreSettings ) then return end
+		
 		if not bIgnoreSettings then
 			self.CurrentGear = 2
 		end
@@ -908,11 +916,13 @@ function ENT:SteerVehicle( steer )
 end
 
 function ENT:Lock()
+	if hook.Run( "simfphysOnLock", self, true ) then return end
 	self:SetIsVehicleLocked( true )
 	self:EmitSound( "doors/latchlocked2.wav" )
 end
 
 function ENT:UnLock()
+	if hook.Run( "simfphysOnLock", self, false ) then return end
 	self:SetIsVehicleLocked( false )
 	self:EmitSound( "doors/latchunlocked1.wav" )
 end
@@ -992,6 +1002,8 @@ end
 
 function ENT:Use( ply )
 	if not IsValid( ply ) then return end
+	
+	if hook.Run( "simfphysUse", self, ply ) then return end
 
 	if self:GetIsVehicleLocked() or self:HasPassengerEnemyTeam( ply ) then 
 		self:EmitSound( "doors/default_locked.wav" )
@@ -1330,6 +1342,7 @@ function ENT:OnRemove()
 	end
 	
 	self:OnDelete()
+	hook.Run( "simfphysOnDelete", self )
 end
 
 function ENT:PlayPP( On )
@@ -1338,6 +1351,8 @@ end
 
 function ENT:SetOnFire( bOn )
 	if bOn == self:OnFire() then return end
+	
+	if hook.Run( "simfphysOnFire", self, bOn ) then return end
 	self:SetNWBool( "OnFire", bOn )
 	
 	if bOn then
@@ -1347,6 +1362,8 @@ end
 
 function ENT:SetOnSmoke( bOn )
 	if bOn == self:OnSmoke() then return end
+	
+	if hook.Run( "simfphysOnSmoke", self, bOn ) then return end
 	self:SetNWBool( "OnSmoke", bOn )
 	
 	if bOn then
