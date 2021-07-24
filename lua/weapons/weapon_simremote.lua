@@ -59,7 +59,7 @@ if (CLIENT) then
 	function SWEP:PrimaryAttack()
 		if self:GetActive() then return false end
 		
-		local trace = self.Owner:GetEyeTrace()
+		local trace = self:GetOwner():GetEyeTrace()
 		local ent = trace.Entity
 		
 		if not simfphys.IsCar( ent ) then return false end
@@ -87,10 +87,8 @@ end
 function SWEP:OwnerChanged()
 end
 
-function SWEP:Think()	
-	local ply = self.Owner
-	
-	if ply:KeyPressed( IN_USE ) then
+function SWEP:Think()
+	if self:GetOwner():KeyPressed( IN_USE ) then
 		if self:GetActive() or not IsValid( self:GetCar() ) then
 			self:Disable()
 		else
@@ -102,7 +100,7 @@ end
 function SWEP:PrimaryAttack()
 	if self:GetActive() then return false end
 	
-	local ply = self.Owner
+	local ply = self:GetOwner()
 	local trace = ply:GetEyeTrace()
 	local ent = trace.Entity
 	
@@ -118,11 +116,9 @@ end
 function SWEP:SecondaryAttack()
 	if self:GetActive() then return false end
 	
-	local ply = self.Owner
-	
 	if IsValid( self:GetCar() ) then
 		self:SetCar( NULL )
-		ply:ChatPrint("Remote Controller unlinked.")
+		self:GetOwner():ChatPrint("Remote Controller unlinked.")
 		
 		return true
 	end
@@ -131,10 +127,11 @@ function SWEP:SecondaryAttack()
 end
 
 function SWEP:Enable()
-	local ply = self.Owner
 	local car = self:GetCar()
 	
 	if IsValid( car ) then
+	
+		local ply = self:GetOwner()
 		if IsValid( car:GetDriver() ) then
 			ply:ChatPrint("vehicle is already in use")
 		else
@@ -154,7 +151,8 @@ function SWEP:Enable()
 end
 
 function SWEP:Disable()
-	local ply = self.Owner
+
+	local ply = self:GetOwner()
 	local car = self:GetCar()
 	
 	if self:GetActive() then

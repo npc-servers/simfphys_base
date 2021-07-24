@@ -33,9 +33,10 @@ function SWEP:SetupDataTables()
 end
 
 function SWEP:IsAimingAt( vpos )
-	if not IsValid( self.Owner ) then return false end
-	local dir = self.Owner:GetAimVector()
-	local pos = self.Owner:GetShootPos()
+	local Owner = self:GetOwner()
+	if not IsValid( Owner ) then return false end
+	local dir = Owner:GetAimVector()
+	local pos = Owner:GetShootPos()
 	local des_dir = (vpos - pos):GetNormalized()
 	
 	local dist = (pos - vpos):Length()
@@ -60,15 +61,16 @@ if CLIENT then
 	
 	
 	function SWEP:ViewModelDrawn()
-		if IsValid( self.Owner ) then
+		local Owner = self:GetOwner()
+		if IsValid( Owner ) then
 			
-			local ZOOM = self.Owner:KeyDown( IN_ZOOM )
+			local ZOOM = Owner:KeyDown( IN_ZOOM )
 			
 			self.ViewModelFOV = ZOOM and 30 or 10
 			
 			if ZOOM then return end
 			
-			local vm = self.Owner:GetViewModel()			
+			local vm = Owner:GetViewModel()			
 			local bm = vm:GetBoneMatrix(0)
 			local pos =  bm:GetTranslation()
 			local ang =  bm:GetAngles()	
@@ -88,10 +90,11 @@ if CLIENT then
 	end
 	
 	function SWEP:DrawWorldModel()
-		if not IsValid( self.Owner ) then return end
+		local Owner = self:GetOwner()
+		if not IsValid( Owner ) then return end
 		
-		local id = self.Owner:LookupAttachment("anim_attachment_rh")
-		local attachment = self.Owner:GetAttachment( id )
+		local id = Owner:LookupAttachment("anim_attachment_rh")
+		local attachment = Owner:GetAttachment( id )
 		
 		if not attachment then return end
 
@@ -124,7 +127,7 @@ if CLIENT then
 		local dia =  screenw * 0.025
 		local radius = dia * 0.5
 		
-		local Trace = self.Owner:GetEyeTrace()
+		local Trace = self:GetOwner():GetEyeTrace()
 		local ent = Trace.Entity
 		
 		surface.SetDrawColor( 255, 0, 0,255 * math.Clamp(inv_time + 0.5 - CurTime(),0,1) )
@@ -177,8 +180,10 @@ end
 
 function SWEP:Initialize()
 	self.Weapon:SetHoldType( self.HoldType )
-	if IsValid( self.Owner ) then
-		self.Owner.usedFuel = 0
+	
+	local Owner = self:GetOwner()
+	if IsValid( Owner ) then
+		Owner.usedFuel = 0
 	end
 end
 
@@ -193,12 +198,13 @@ function SWEP:Think()
 		
 		self.nextThink = CurTime() + 0.02
 		
-		if not IsValid( self.Owner ) then return end
-		if not self.Owner:KeyDown( IN_ATTACK ) then return end
+		local Owner = self:GetOwner()
+		if not IsValid( Owner ) then return end
+		if not Owner:KeyDown( IN_ATTACK ) then return end
 		
-		local Trace = self.Owner:GetEyeTrace()
+		local Trace = Owner:GetEyeTrace()
 		local ent = Trace.Entity
-		local InRange = (Trace.HitPos - self.Owner:GetPos()):Length() < self.MaxDistance
+		local InRange = (Trace.HitPos - Owner:GetPos()):Length() < self.MaxDistance
 		local HIT = IsValid( ent ) and simfphys.IsCar( ent ) and InRange
 	
 		if HIT then
@@ -207,16 +213,16 @@ function SWEP:Think()
 		
 		if self:GetFuelType() == FUELTYPE_ELECTRIC then return end
 		
-		local id = self.Owner:LookupAttachment("anim_attachment_rh")
-		local attachment = self.Owner:GetAttachment( id )
+		local id = Owner:LookupAttachment("anim_attachment_rh")
+		local attachment = Owner:GetAttachment( id )
 		
 		if not attachment then return end
 		
 		local Pos = (attachment.Pos + attachment.Ang:Forward() * 14 + attachment.Ang:Right() * -5 + attachment.Ang:Up() * 7 )
 		
-		local FirstPerson = self.Owner == LocalPlayer() and self.Owner:GetViewEntity() == self.Owner
+		local FirstPerson = Owner == LocalPlayer() and Owner:GetViewEntity() == Owner
 		if FirstPerson then
-			Pos = self.Owner:GetShootPos() + self.Owner:EyeAngles():Forward() * 10 + self.Owner:EyeAngles():Right() * 3 - self.Owner:EyeAngles():Up()  * 2
+			Pos = Owner:GetShootPos() + Owner:EyeAngles():Forward() * 10 + Owner:EyeAngles():Right() * 3 - Owner:EyeAngles():Up()  * 2
 		end
 		
 	
@@ -250,7 +256,7 @@ function SWEP:Think()
 			dir:RotateAroundAxis(attachment.Ang:Up(), 20)
 			
 			if FirstPerson then
-				dir = self.Owner:EyeAngles() + Angle(-15,10,0)
+				dir = Owner:EyeAngles() + Angle(-15,10,0)
 			end
 			
 			particle:SetVelocity( dir:Forward() * 320 )
@@ -284,14 +290,15 @@ end
 
 function SWEP:PrimaryAttack()
 	if not self:CanPrimaryAttack() then return end
-
-	local Trace = self.Owner:GetEyeTrace()
+	
+	local Owner = self:GetOwner()
+	local Trace = Owner:GetEyeTrace()
 	local ent = Trace.Entity
-	local InRange = (Trace.HitPos - self.Owner:GetPos()):Length() < self.MaxDistance
+	local InRange = (Trace.HitPos - Owner:GetPos()):Length() < self.MaxDistance
 	local HIT = IsValid( ent ) and simfphys.IsCar( ent ) and InRange
 	
 	if SERVER then
-		self.Owner.usedFuel = self.Owner.usedFuel or 0
+		Owner.usedFuel = Owner.usedFuel or 0
 	
 		if HIT then
 			local Fuel = ent:GetFuel()
@@ -302,7 +309,7 @@ function SWEP:PrimaryAttack()
 					timer.Simple(0.2, function()
 						if not IsValid( ent ) then return end
 						if not IsValid( self ) then return end
-						if not IsValid( self.Owner ) then return end
+						if not IsValid( Owner ) then return end
 						
 						if self:GetFuelType() ~=  ent:GetFuelType() then return end
 						
@@ -319,7 +326,7 @@ function SWEP:PrimaryAttack()
 									effectdata:SetRadius( 8 ) 
 								util.Effect( "Sparks", effectdata, true, true ) 
 								
-								self.Owner.usedFuel = self.Owner.usedFuel + self.RefilAmount
+								Owner.usedFuel = Owner.usedFuel + self.RefilAmount
 							else
 								sound.Play( Sound( "vehicles/jetski/jetski_no_gas_start.wav" ), Trace.HitPos, 65)
 							end
@@ -330,7 +337,7 @@ function SWEP:PrimaryAttack()
 		end
 		
 		if self:GetFuelType() ~= FUELTYPE_ELECTRIC then
-			self.Owner.usedFuel = self.Owner.usedFuel + self.RefilAmount
+			Owner.usedFuel = Owner.usedFuel + self.RefilAmount
 		end
 		
 	end
