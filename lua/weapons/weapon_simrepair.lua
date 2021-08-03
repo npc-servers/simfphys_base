@@ -47,8 +47,9 @@ function SWEP:Think()
 end
 
 function SWEP:PrimaryAttack()
-	self.Weapon:SetNextPrimaryFire( CurTime() + 0.1 )	
-	local Trace = self.Owner:GetEyeTrace()
+	self.Weapon:SetNextPrimaryFire( CurTime() + 0.1 )
+	local Owner = self:GetOwner()
+	local Trace = Owner:GetEyeTrace()
 	local ent = Trace.Entity
 	
 	if !IsValid(ent) then return end
@@ -58,11 +59,11 @@ function SWEP:PrimaryAttack()
 	local IsWheel = class == "gmod_sent_vehicle_fphysics_wheel"
 	
 	if IsVehicle then
-		local Dist = (Trace.HitPos - self.Owner:GetPos()):Length()
+		local Dist = (Trace.HitPos - Owner:GetPos()):Length()
 		
 		if (Dist <= 100) then
 			self.Weapon:SendWeaponAnim( ACT_VM_PRIMARYATTACK )
-			self.Owner:SetAnimation( PLAYER_ATTACK1 )
+			Owner:SetAnimation( PLAYER_ATTACK1 )
 			
 			if (SERVER) then
 				local MaxHealth = ent:GetMaxHealth()
@@ -117,11 +118,11 @@ function SWEP:PrimaryAttack()
 			end
 		end
 	elseif IsWheel then
-		local Dist = (Trace.HitPos - self.Owner:GetPos()):Length()
+		local Dist = (Trace.HitPos - Owner:GetPos()):Length()
 		
 		if (Dist <= 100) then
 			self.Weapon:SendWeaponAnim( ACT_VM_PRIMARYATTACK )
-			self.Owner:SetAnimation( PLAYER_ATTACK1 )
+			Owner:SetAnimation( PLAYER_ATTACK1 )
 			
 			if (SERVER) then
 				if ent:GetDamaged() then
@@ -159,7 +160,7 @@ function SWEP:DrawHUD()
 	local xpos = sizex * 0.02
 	local ypos = sizey * 0.85
 	
-	local Trace = self.Owner:GetEyeTrace()
+	local Trace = self:GetOwner():GetEyeTrace()
 	local ent = Trace.Entity
 	
 	draw.RoundedBox( 0, xpos, ypos, sizex * 0.118, sizey * 0.02, Color( 0, 0, 0, 80 ) )
