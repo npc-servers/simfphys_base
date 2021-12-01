@@ -47,7 +47,7 @@ end
 function ENT:SimulateAirControls(tilt_forward,tilt_back,tilt_left,tilt_right)
 	if self:IsDriveWheelsOnGround() then return end
 	
-	if hook.Run( "simfphysAirControl", tilt_forward, tilt_back, tilt_left, tilt_right) then return end
+	if hook.Run( "simfphysAirControl", self, tilt_forward, tilt_back, tilt_left, tilt_right) then return end
 	
 	local PObj = self:GetPhysicsObject()
 	
