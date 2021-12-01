@@ -54,12 +54,11 @@ if SERVER then
 			self.WheelDust:Activate()
 			self.WheelDust:SetParent( self )
 			self.WheelDust.DoNotDuplicate = true
-			
+
 			simfphys.SetOwner( self.EntityOwner, self.WheelDust )
-			
-			
-			if not istable( StormFox ) or not isfunction( StormFox.IsRaining ) then return end
-			
+
+			if not istable( StormFox ) and not istable( StormFox2 ) then return end
+
 			self.WheelSplash = ents.Create( "info_particle_system" )
 			self.WheelSplash:SetKeyValue( "effect_name" , "WheelSplashForward")
 			self.WheelSplash:SetKeyValue( "start_active" , 0)
@@ -70,7 +69,7 @@ if SERVER then
 			self.WheelSplash:Activate()
 			self.WheelSplash:SetParent( self )
 			self.WheelSplash.DoNotDuplicate = true
-			
+
 			simfphys.SetOwner( self.EntityOwner, self.WheelSplash )
 		end)
 		
@@ -130,16 +129,32 @@ if SERVER then
 	end
 
 	function ENT:CheckWeather()
-		if not istable( StormFox ) or not isfunction( StormFox.IsRaining ) then return end
+		if not istable( StormFox ) and not istable( StormFox2 ) then return end
 
-		if StormFox.IsRaining() then
-			self.RainDetected = true
-			self.snd_roll = "simulated_vehicles/sfx/concrete_roll_wet.wav"
-			self.snd_skid = "simulated_vehicles/sfx/concrete_skid_wet.wav"
+		if istable( StormFox ) then
+			if isfunction( StormFox.IsRaining ) then
+				if StormFox.IsRaining() then
+					self.RainDetected = true
+					self.snd_roll = "simulated_vehicles/sfx/concrete_roll_wet.wav"
+					self.snd_skid = "simulated_vehicles/sfx/concrete_skid_wet.wav"
+				else
+					self.RainDetected = false
+					self.snd_roll = "simulated_vehicles/sfx/concrete_roll.wav"
+					self.snd_skid = "simulated_vehicles/sfx/concrete_skid.wav"
+				end
+			end
 		else
-			self.RainDetected = false
-			self.snd_roll = "simulated_vehicles/sfx/concrete_roll.wav"
-			self.snd_skid = "simulated_vehicles/sfx/concrete_skid.wav"
+			if istable( StormFox2.Weather ) and isfunction( StormFox2.Weather.IsRaining ) then
+				if StormFox2.Weather:IsRaining() then
+					self.RainDetected = true
+					self.snd_roll = "simulated_vehicles/sfx/concrete_roll_wet.wav"
+					self.snd_skid = "simulated_vehicles/sfx/concrete_skid_wet.wav"
+				else
+					self.RainDetected = false
+					self.snd_roll = "simulated_vehicles/sfx/concrete_roll.wav"
+					self.snd_skid = "simulated_vehicles/sfx/concrete_skid.wav"
+				end
+			end
 		end
 	end
 	

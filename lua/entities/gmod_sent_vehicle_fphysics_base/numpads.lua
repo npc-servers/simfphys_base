@@ -262,7 +262,7 @@ numpad.Register( "k_lgts", function( pl, ent, keydown )
 	if keydown then
 		ent.KeyPressedTime = Time
 	else
-		if (Time - ent.KeyPressedTime) >= (ent.LightsActivated and 0.22 or 0) then
+		if ent.KeyPressedTime and (Time - ent.KeyPressedTime) >= (ent.LightsActivated and 0.22 or 0) then
 			if (ent.NextLightCheck or 0) > Time then return end
 			
 			local vehiclelist = list.Get( "simfphys_lights" )[ent.LightsTable] or false
