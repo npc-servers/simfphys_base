@@ -12,7 +12,6 @@ if SERVER then
 	AddCSLuaFile("simfphys/base_lights.lua")
 	AddCSLuaFile("simfphys/base_vehicles.lua")
 	AddCSLuaFile("simfphys/view.lua")
-	AddCSLuaFile("simfphys/eyeangles_legacy.lua")
 	
 	include("simfphys/base_functions.lua")
 	include("simfphys/server/exitpoints.lua")
@@ -40,4 +39,3 @@ include("simfphys/anim.lua")
 include("simfphys/base_lights.lua")
 include("simfphys/base_vehicles.lua")
 include("simfphys/view.lua")
-include("simfphys/eyeangles_legacy.lua")
