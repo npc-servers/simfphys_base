@@ -55,7 +55,7 @@ function ENT:Think()
 	
 	self:OnTick()
 	
-	hook.Run( "simfphysOnTick", self )
+	hook.Run( "simfphysOnTick", self, Time )
 	
 	self.NextTick = self.NextTick or 0
 	if self.NextTick < Time then

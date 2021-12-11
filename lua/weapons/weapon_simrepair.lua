@@ -106,6 +106,9 @@ function SWEP:PrimaryAttack()
 					net.Broadcast()
 					
 					ent:OnRepaired()
+					
+					hook.Run( "simfphysOnRepaired", ent )
+					
 					if istable(ent.Wheels) then
 						for i = 1, table.Count( ent.Wheels ) do
 							local Wheel = ent.Wheels[ i ]
