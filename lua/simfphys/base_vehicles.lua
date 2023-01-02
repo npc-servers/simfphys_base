@@ -399,9 +399,9 @@ local V = {
 	Members = {
 		Mass = 4800,
 		MaxHealth = 2800,
-		
+
 		EnginePos = Vector(-16.1,-81.68,47.25),
-		
+
 		LightsTable = "conapc",
 		
 		GibModels = {

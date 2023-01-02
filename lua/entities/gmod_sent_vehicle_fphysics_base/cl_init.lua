@@ -106,14 +106,14 @@ end
 function ENT:GetEnginePos()
 	local Attachment = self:GetAttachment( self:LookupAttachment( "vehicle_engine" ) )
 	local pos = self:GetPos()
-	
+
 	if Attachment then
 		pos = Attachment.Pos
 	end
-	
-	if not self.EnginePos then
+
+	if self.EnginePos == nil then
 		local vehiclelist = list.Get( "simfphys_vehicles" )[ self:GetSpawn_List() ]
-		
+
 		if vehiclelist then
 			self.EnginePos = vehiclelist.Members.EnginePos or false
 		else
@@ -123,7 +123,7 @@ function ENT:GetEnginePos()
 	elseif isvector( self.EnginePos ) then
 		pos = self:LocalToWorld( self.EnginePos )
 	end
-	
+
 	return pos
 end
 
