@@ -1,32 +1,23 @@
 ENT.Type            = "anim"
 
 ENT.PrintName = "Comedy Effect"
-ENT.Author = "Blu"
-ENT.Information = ""
-ENT.Category = "Fun + Games"
-
-ENT.Spawnable       = false
-ENT.AdminSpawnable  = false
+ENT.Author = "Blu-x92"
 
 ENT.AutomaticFrameAdvance = true
 ENT.RenderGroup = RENDERGROUP_BOTH 
 
-if CLIENT then
-	ENT.Editable = true -- always show it on client
- else
-	ENT.Editable = (GetConVar("sv_simfphys_devmode"):GetInt() or 1) >= 1
-end
+ENT.Editable = true
 
-ENT.IsSimfphyscar = true
+ENT.lvsComedyEffect = true
 
 function ENT:SetupDataTables()
 	self:NetworkVar( "Float",1, "SteerSpeed",				{ KeyName = "steerspeed",			Edit = { type = "Float",		order = 1,min = 1, max = 16,		category = "Steering"} } )
 	self:NetworkVar( "Float",2, "FastSteerConeFadeSpeed",	{ KeyName = "faststeerconefadespeed",	Edit = { type = "Float",		order = 2,min = 1, max = 5000,		category = "Steering"} } )
 	self:NetworkVar( "Float",3, "FastSteerAngle",			{ KeyName = "faststeerangle",			Edit = { type = "Float",		order = 3,min = 0, max = 1,		category = "Steering"} } )
-	
+
 	self:NetworkVar( "Float",4, "FrontSuspensionHeight",		{ KeyName = "frontsuspensionheight",	Edit = { type = "Float",		order = 4,min = -1, max = 1,		category = "Suspension" } } )
 	self:NetworkVar( "Float",5, "RearSuspensionHeight",		{ KeyName = "rearsuspensionheight",		Edit = { type = "Float",		order = 5,min = -1, max = 1,		category = "Suspension" } } )
-	
+
 	self:NetworkVar( "Int",0, "EngineSoundPreset",			{ KeyName = "enginesoundpreset",		Edit = { type = "Int",			order = 6,min = -1, max = 14,		category = "Engine"} } )
 	self:NetworkVar( "Int",1, "IdleRPM", 					{ KeyName = "idlerpm",				Edit = { type = "Int",			order = 7,min = 1, max = 25000,	category = "Engine"} } )
 	self:NetworkVar( "Int",2, "LimitRPM", 					{ KeyName = "limitrpm",				Edit = { type = "Int",			order = 8,min = 4, max = 25000,	category = "Engine"} } )
@@ -38,9 +29,9 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool",4, "SuperCharged",				{ KeyName = "supercharged",			Edit = { type = "Boolean",		order = 14,					category = "Engine"} } )
 	self:NetworkVar( "Bool",14, "BackFire",				{ KeyName = "backfire",				Edit = { type = "Boolean",		order = 15,					category = "Engine"} } )
 	self:NetworkVar( "Bool",15, "DoNotStall",				{ KeyName = "donotstall",				Edit = { type = "Boolean",		order = 16,					category = "Engine"} } )
-	
+
 	self:NetworkVar( "Float",7, "DifferentialGear",			{ KeyName = "differentialgear",			Edit = { type = "Float",		order = 17,min = 0.2, max = 6,		category = "Transmission"} } )
-	
+
 	self:NetworkVar( "Float",8, "BrakePower",				{ KeyName = "brakepower",			Edit = { type = "Float",		order = 18,min = 0.1, max = 500,	category = "Wheels"} } )
 	self:NetworkVar( "Float",9, "PowerDistribution",			{ KeyName = "powerdistribution",		Edit = { type = "Float",		order = 19,min = -1, max = 1,		category = "Wheels"} } )
 	self:NetworkVar( "Float",10, "Efficiency",				{ KeyName = "efficiency",				Edit = { type = "Float",		order = 20,min = 0.2, max = 4,		category = "Wheels"} } )
@@ -48,7 +39,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Float",12, "TractionBias",				{ KeyName = "tractionbias",			Edit = { type = "Float",		order = 22,min = -0.99, max = 0.99,	category = "Wheels"} } )
 	self:NetworkVar( "Bool",17, "BulletProofTires",			{ KeyName = "bulletprooftires",			Edit = { type = "Boolean",		order = 23,					category = "Wheels"} } )
 	self:NetworkVar( "Vector",0, "TireSmokeColor",			{ KeyName = "tiresmokecolor",			Edit = { type = "VectorColor",	order = 24,					category = "Wheels"} } )
-	
+
 	self:NetworkVar( "Float",13, "FlyWheelRPM" )
 	self:NetworkVar( "Float",14, "Throttle" )
 	self:NetworkVar( "Int",5, "Gear" )
@@ -63,15 +54,15 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool",18, "IsVehicleLocked" )
 
 	self:NetworkVar( "Float",15, "VehicleSteer" )
-	
+
 	self:NetworkVar( "Entity",0, "Driver" )
 	self:NetworkVar( "Entity",1, "DriverSeat" )
 	self:NetworkVar( "Bool",3, "Active" )
-	
+
 	self:NetworkVar( "String",1, "Spawn_List")
 	self:NetworkVar( "String",2, "Lights_List")
 	self:NetworkVar( "String",3, "Soundoverride")
-	
+
 	self:NetworkVar( "Vector",1, "FuelPortPosition" )
 
 	if SERVER then
@@ -87,16 +78,6 @@ function ENT:SetupDataTables()
 end
 
 function ENT:AddDataTables()
-end
-
-function ENT:IsSimfphyscar()
-	return true
-end
-
-local VehicleMeta = FindMetaTable("Entity")
-local OldIsVehicle = VehicleMeta.IsVehicle
-function VehicleMeta:IsVehicle()
-	return self.IsSimfphyscar and self:IsSimfphyscar() or OldIsVehicle(self)
 end
 
 function ENT:GetCurHealth()
@@ -167,10 +148,6 @@ function ENT:GetPassengerSeats()
 	end
 	
 	return self.pSeat
-end
-
-function ENT:GetVehicleClass()
-	return "these are not the droids you are looking for"
 end
 
 function ENT:GetSeatAnimation( ply )
