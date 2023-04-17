@@ -12,7 +12,6 @@ local hud_x = CreateClientConVar( "cl_simfphys_hud_offset_x", "0", true, false )
 local hud_y = CreateClientConVar( "cl_simfphys_hud_offset_y", "0", true, false )
 local hud_mph = CreateClientConVar( "cl_simfphys_hudmph", "0", true, false )
 local hud_mpg = CreateClientConVar( "cl_simfphys_hudmpg", "0", true, false )
-local hud_realspeed = CreateClientConVar( "cl_simfphys_hudrealspeed", "0", true, false )
 local autostart = CreateClientConVar( "cl_simfphys_autostart", "1", true, true )
 
 local mousesteer = CreateClientConVar( "cl_simfphys_mousesteer", "0", true, true )
@@ -197,8 +196,7 @@ local function buildclientsettingsmenu( self )
 	createcheckbox(210,25,"Racing Hud","cl_simfphys_althud",self.PropPanel,alt_hud:GetInt())
 	createcheckbox(210,45,"HQ Racing Hud\n(will cause problems\nwith multicore!)","cl_simfphys_althud_arcs",self.PropPanel,alt_hud_arc:GetInt())
 	createcheckbox(25,45,"MPH instead of KMH","cl_simfphys_hudmph",self.PropPanel,hud_mph:GetInt())
-	createcheckbox(25,65,"Speed relative to \nplayersize instead \nworldsize","cl_simfphys_hudrealspeed",self.PropPanel,hud_realspeed:GetInt())
-	createcheckbox(25,110,"Fuel consumption \nin MPG instead \nof L/100KM","cl_simfphys_hudmpg",self.PropPanel,hud_mpg:GetInt())
+	createcheckbox(25,65,"Fuel consumption \nin MPG instead \nof L/100KM","cl_simfphys_hudmpg",self.PropPanel,hud_mpg:GetInt())
 	createslider(30,155,345,20,"Hud offset X","cl_simfphys_hud_offset_x",self.PropPanel,-1,1,hud_x:GetFloat())
 	createslider(30,175,345,20,"Hud offset Y","cl_simfphys_hud_offset_y",self.PropPanel,-1,1,hud_y:GetFloat())
 	
@@ -603,7 +601,12 @@ local function buildserversettingsmenu( self )
 end
 
 
-hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, tree, node )
+hook.Add( "lvsOnPopulateVehicles", "AddEntityContent", function( pnlContent, lvsNode )
+
+	local tree = lvsNode:AddNode( "Cars", "icon16/car.png" )
+	tree.DoClick = function( self )
+		pnlContent:SwitchPanel( self.PropPanel )
+	end
 
 	local Categorised = {}
 
@@ -677,7 +680,7 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 		self:DoPopulate()
 		pnlContent:SwitchPanel( self.PropPanel )
 	end
-	
+
 	-- MOUSE STEERING
 	local node = tree:AddNode( "Mouse Steering", "icon16/mouse.png" )
 	node.DoPopulate = function( self )
@@ -702,7 +705,7 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 			RunConsoleCommand("joyconfig") 
 		end
 	end
-	
+
 	-- CLIENT SETTINGS
 	local node = tree:AddNode( "Client Settings", "icon16/wrench.png" )
 	node.DoPopulate = function( self )
@@ -732,23 +735,7 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 		self:DoPopulate()
 		pnlContent:SwitchPanel( self.PropPanel )
 	end
-
-	
-	-- Select the first node
-	local FirstNode = tree:Root():GetChildNode( 0 )
-	if IsValid( FirstNode ) then
-		FirstNode:InternalDoClick()
-	end
-
 end )
-
-spawnmenu.AddCreationTab( "simfphys", function()
-
-	local ctrl = vgui.Create( "SpawnmenuContentPanel" )
-	ctrl:CallPopulateHook( "SimfphysPopulateVehicles" )
-	return ctrl
-
-end, "icon16/car.png", 50 )
 
 
 spawnmenu.AddContentType( "simfphys_vehicles", function( container, obj )
