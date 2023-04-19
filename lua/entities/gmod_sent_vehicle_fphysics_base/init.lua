@@ -4,40 +4,131 @@ include("shared.lua")
 include("spawn.lua")
 include("simfunc.lua")
 include("numpads.lua")
+include("sv_duping.lua")
+include("sv_wiremod.lua")
 
-local function EntityLookup(CreatedEntities)
-	return function(id, default)
-		if id == nil then return default end
-		if id == 0 then return game.GetWorld() end
-		local ent = CreatedEntities[id] or (isnumber(id) and ents.GetByIndex(id))
-		if IsValid(ent) then return ent else return default end
-	end
-end
+DEFINE_BASECLASS( "lvs_base" )
 
-function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	if istable( WireLib ) then
-		WireLib.ApplyDupeInfo(ply, ent, info, GetEntByID)
-	end
-end
+function ENT:InitFromList( data )
+	table.Merge( self, data )
 
-function ENT:PreEntityCopy()
-	if istable( WireLib ) then
-		duplicator.StoreEntityModifier( self, "WireDupeInfo", WireLib.BuildDupeInfo(self) )
-	end
-end
+	self:SetHP( self.MaxHealth )
 
-function ENT:PostEntityPaste(Player,Ent,CreatedEntities)
-	if istable( WireLib ) then
-		if Ent.EntityMods and Ent.EntityMods.WireDupeInfo then
-			WireLib.ApplyDupeInfo(Player, Ent, Ent.EntityMods.WireDupeInfo, EntityLookup(CreatedEntities))
+	self:SetValues()
+
+	timer.Simple(0, function()
+		if not IsValid( self ) then return end
+
+		self:SetSpawn_List( self:GetClass() )
+
+		if self.ModelInfo then
+			if self.ModelInfo.Bodygroups then
+				for i = 1, table.Count( self.ModelInfo.Bodygroups ) do
+					self:SetBodygroup(i, self.ModelInfo.Bodygroups[i] ) 
+				end
+			end
+			
+			if self.ModelInfo.Skin then
+				self:SetSkin( self.ModelInfo.Skin )
+			end
+			
+			if self.ModelInfo.Color then
+				self:SetColor( self.ModelInfo.Color )
+				
+				local Color = self.ModelInfo.Color
+				local dot = Color.r * Color.g * Color.b * Color.a
+				self.OldColor = dot
+				
+				local data = {
+					Color = Color,
+					RenderMode = 0,
+					RenderFX = 0
+				}
+				duplicator.StoreEntityModifier( self, "colour", data )
+			end
 		end
-	end
+		
+		self:SetTireSmokeColor(Vector(180,180,180) / 255)
+		
+		self.Turbocharged = self.Turbocharged or false
+		self.Supercharged = self.Supercharged or false
+		
+		self:SetEngineSoundPreset( self.EngineSoundPreset )
+		self:SetMaxTorque( self.PeakTorque )
+
+		self:SetDifferentialGear( self.DifferentialGear )
+		
+		self:SetSteerSpeed( self.TurnSpeed )
+		self:SetFastSteerConeFadeSpeed( self.SteeringFadeFastSpeed )
+		self:SetFastSteerAngle( self.FastSteeringAngle )
+		
+		self:SetEfficiency( self.Efficiency )
+		self:SetMaxTraction( self.MaxGrip )
+		self:SetTractionBias( self.GripOffset / self.MaxGrip )
+		self:SetPowerDistribution( self.PowerBias )
+		
+		self:SetBackFire( self.Backfire or false )
+		self:SetDoNotStall( self.DoNotStall or false )
+		
+		self:SetIdleRPM( self.IdleRPM )
+		self:SetLimitRPM( self.LimitRPM )
+		self:SetRevlimiter( self.Revlimiter or false )
+		self:SetPowerBandEnd( self.PowerbandEnd )
+		self:SetPowerBandStart( self.PowerbandStart )
+		
+		self:SetTurboCharged( self.Turbocharged )
+		self:SetSuperCharged( self.Supercharged )
+		self:SetBrakePower( self.BrakePower )
+		
+		self:SetLights_List( self.LightsTable or "no_lights" )
+		
+		self:SetBulletProofTires( self.BulletProofTires or false )
+		
+		self:SetBackfireSound( self.snd_backfire or "" )
+		
+		if not simfphys.WeaponSystemRegister then
+			if simfphys.ManagedVehicles then
+				print("[SIMFPHYS ARMED] IS OUT OF DATE")
+			end
+		else
+			timer.Simple( 0.2, function()
+				simfphys.WeaponSystemRegister( self )
+			end )
+			
+			if (simfphys.armedAutoRegister and not simfphys.armedAutoRegister()) or simfphys.RegisterEquipment then
+				print("[SIMFPHYS ARMED]: ONE OF YOUR ADDITIONAL SIMFPHYS-ARMED PACKS IS CAUSING CONFLICTS!!!")
+				print("[SIMFPHYS ARMED]: PRECAUTIONARY RESTORING FUNCTION:")
+				print("[SIMFPHYS ARMED]: simfphys.FireHitScan")
+				print("[SIMFPHYS ARMED]: simfphys.FirePhysProjectile")
+				print("[SIMFPHYS ARMED]: simfphys.RegisterCrosshair")
+				print("[SIMFPHYS ARMED]: simfphys.RegisterCamera")
+				print("[SIMFPHYS ARMED]: simfphys.armedAutoRegister")
+				print("[SIMFPHYS ARMED]: REMOVING FUNCTION:")
+				print("[SIMFPHYS ARMED]: simfphys.RegisterEquipment")
+				print("[SIMFPHYS ARMED]: CLEARING OUTDATED ''RegisterEquipment'' HOOK")
+				print("[SIMFPHYS ARMED]: !!!FUNCTIONALITY IS NOT GUARANTEED!!!")
+			
+				simfphys.FireHitScan = function( data ) simfphys.FireBullet( data ) end
+				simfphys.FirePhysProjectile = function( data ) simfphys.FirePhysBullet( data ) end
+				simfphys.RegisterCrosshair = function( ent, data ) simfphys.xhairRegister( ent, data ) end
+				simfphys.RegisterCamera = 
+					function( ent, offset_firstperson, offset_thirdperson, bLocalAng, attachment )
+						simfphys.CameraRegister( ent, offset_firstperson, offset_thirdperson, bLocalAng, attachment )
+					end
+				
+				hook.Remove( "PlayerSpawnedVehicle","simfphys_armedvehicles" )
+				simfphys.RegisterEquipment = nil
+				simfphys.armedAutoRegister = function( vehicle ) simfphys.WeaponSystemRegister( vehicle ) return true end
+			end
+		end
+
+		duplicator.StoreEntityModifier( self, "VehicleMemDupe", data )
+
+		self:InitializeVehicle()
+	end )
 end
 
-function ENT:OnSpawn()
-end
-
-function ENT:OnTick()
+function ENT:PostInitialize( PObj )
 end
 
 function ENT:OnDelete()
@@ -49,24 +140,25 @@ end
 function ENT:OnRepaired()
 end
 
+function ENT:HandleActive()
+end
+
 function ENT:Think()
 	local Time = CurTime()
-	
-	self:OnTick()
-	
+
 	hook.Run( "simfphysOnTick", self, Time )
-	
+
 	self.NextTick = self.NextTick or 0
 	if self.NextTick < Time then
 		self.NextTick = Time + 0.025
-		
+
 		if IsValid( self.DriverSeat ) then
 			local Driver = self.DriverSeat:GetDriver()
 			Driver = IsValid( self.RemoteDriver ) and self.RemoteDriver or Driver
 			
 			local OldDriver = self:GetDriver()
 			if OldDriver ~= Driver then
-				if self:GetIsVehicleLocked() then
+				if self:GetlvsLockedStatus() then
 					self:UnLock()
 				end
 
@@ -99,20 +191,20 @@ function ENT:Think()
 							end
 						end
 					end
-					
+
 					if self.keys then
 						for i = 1, table.Count( self.keys ) do
 							numpad.Remove( self.keys[i] )
 						end
 					end
-					
+
 					if HadDriver then
 						if OldDriver:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
 							self:StopEngine()
 							self:SetActive( false )
 						else
 							self:ResetJoystick()
-							
+
 							if not self:EngineActive() then
 								self:SetActive( false )
 							end
@@ -124,23 +216,23 @@ function ENT:Think()
 				end
 			end
 		end
-		
+
 		if self:IsInitialized() then
 			self:SetColors()
 			self:SimulateVehicle( Time )
 			self:ControlLighting( Time )
 			self:ControlHorn()
-			
+
 			if istable( WireLib ) then
 				self:UpdateWireOutputs()
 			end
-			
+
 			self.NextWaterCheck = self.NextWaterCheck or 0
 			if self.NextWaterCheck < Time then
 				self.NextWaterCheck = Time + 0.2
 				self:WaterPhysics()
 			end
-			
+
 			if self:GetActive() then
 				self:SetPhysics( ((math.abs(self.ForwardSpeed) < 50) and (self.Brake > 0 or self.HandBrake > 0)) )
 			else
@@ -148,9 +240,9 @@ function ENT:Think()
 			end
 		end
 	end
-	
-	self:NextThink( Time )
-	
+
+	BaseClass.Think( self )
+
 	return true
 end
 
@@ -170,144 +262,9 @@ function ENT:ControlHorn()
 	end
 end
 
-function ENT:createWireIO()
-	self.Inputs = WireLib.CreateInputs( self,{"Eject Driver","Eject Passengers","Lock","Engine Start","Engine Stop","Engine Toggle","Steer","Throttle","Gear Up","Gear Down","Set Gear","Clutch","Handbrake","Brake/Reverse"} )
-	--self.Inputs = WireLib.CreateSpecialInputs(self, { "blah" }, { "NORMAL" })
-	
-	self.Outputs = WireLib.CreateSpecialOutputs( self, 
-		{ "Active","Health","RPM","Torque","DriverSeat","PassengerSeats","Driver","Gear","Ratio","Lights Enabled","Highbeams Enabled","Foglights Enabled","Sirens Enabled","Turn Signals Enabled","Remaining Fuel" },
-		{ "NORMAL","NORMAL","NORMAL","NORMAL","ENTITY","ARRAY","ENTITY","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL" }
-	)
-end
-
-function ENT:TriggerInput( name, value )
-	if name == "Engine Start" then
-		if value >= 1 then
-			self:SetActive( true )
-			self:StartEngine()
-		end
-	end
-	
-	if name == "Engine Stop" then
-		if value >= 1 then
-			self:SetActive( false )
-			self:StopEngine()
-		end
-	end
-	
-	if name == "Engine Toggle" then
-		if value >= 1 then
-			if self:GetActive() then
-				if not self:EngineActive() then
-					self:StartEngine()
-				else
-					self:StopEngine()
-					self:SetActive( false )
-				end
-			else
-				self:SetActive( true )
-				self:StartEngine()
-			end
-		end
-	end
-	
-	if name == "Lock" then
-		if value >= 1 then
-			self:Lock()
-		else
-			self:UnLock()
-		end
-	end
-	
-	if name == "Eject Driver" then
-		local Driver = self:GetDriver()
-		if IsValid( Driver ) then
-			Driver:ExitVehicle()
-		end
-	end
-	
-	if name == "Eject Passengers" then
-		if istable( self.pSeat ) then
-			for i = 1, table.Count( self.pSeat ) do
-				if IsValid( self.pSeat[i] ) then
-					
-					local Driver = self.pSeat[i]:GetDriver()
-					
-					if IsValid( Driver ) then
-						Driver:ExitVehicle()
-					end
-				end
-			end
-		end
-	end
-	
-	if name == "Steer" then
-		self:SteerVehicle( math.Clamp( value, -1 , 1) * self.VehicleData["steerangle"] )
-		for i = 1, table.Count(self.Wheels) do
-			local Wheel = self.Wheels[i]
-			if IsValid( Wheel ) then
-				Wheel:PhysWake()
-			end
-		end
-	end
-	
-	if name == "Throttle" then
-		self.PressedKeys["joystick_throttle"] = math.Clamp( value, 0, 1 )
-	end
-	
-	if name == "Brake/Reverse" then
-		self.PressedKeys["joystick_brake"] = math.Clamp( value, 0, 1 )
-	end
-
-	if name == "Gear Up" then
-		if value >= 1 then
-			self.CurrentGear = math.Clamp(self.CurrentGear + 1,1,table.Count( self.Gears ) )
-			self:SetGear( self.CurrentGear )
-		end
-	end
-	
-	if name == "Gear Down" then
-		if value >= 1 then
-			self.CurrentGear = math.Clamp(self.CurrentGear - 1,1,table.Count( self.Gears ) )
-			self:SetGear( self.CurrentGear )
-		end
-	end
-	
-	if name == "Set Gear" then
-		self:ForceGear( math.Round( value, 0 ) )
-	end
-	
-	if name == "Clutch" then
-		self.PressedKeys["joystick_clutch"] = math.Clamp( value, 0, 1 )
-	end
-	
-	if name == "Handbrake" then
-		self.PressedKeys["joystick_handbrake"] = (value > 0) and 1 or 0
-	end
-end
-
 function ENT:ForceGear( desGear )
 	self.CurrentGear = math.Clamp( math.Round( desGear, 0 ),1,table.Count( self.Gears ) )
 	self:SetGear( self.CurrentGear )
-end
-
-function ENT:UpdateWireOutputs()
-	WireLib.TriggerOutput(self, "Active", self:EngineActive() and 1 or 0 )
-	WireLib.TriggerOutput(self, "Health", self:GetCurHealth() )
-	
-	WireLib.TriggerOutput(self, "Driver", self:GetDriver() )
-	WireLib.TriggerOutput(self, "Torque", self.Torque )
-	WireLib.TriggerOutput(self, "RPM", self:GetEngineRPM() )
-	
-	WireLib.TriggerOutput(self, "Gear", self:GetGear() )
-	WireLib.TriggerOutput(self, "Ratio",self:GetGear() == 2 and 0 or (self.GearRatio or 0) )
-	
-	WireLib.TriggerOutput(self, "Lights Enabled", self:GetLightsEnabled() and 1 or 0 )
-	WireLib.TriggerOutput(self, "Highbeams Enabled", self:GetLampsEnabled() and 1 or 0 )
-	WireLib.TriggerOutput(self, "Foglights Enabled", self:GetFogLightsEnabled() and 1 or 0 )
-	WireLib.TriggerOutput(self, "Sirens Enabled", self:GetEMSEnabled() and 1 or 0 )
-	WireLib.TriggerOutput(self, "Turn Signals Enabled", self:GetTSEnabled())
-	WireLib.TriggerOutput(self, "Remaining Fuel", self:GetFuel())
 end
 
 function ENT:OnActiveChanged( name, old, new)
@@ -744,10 +701,6 @@ function ENT:PhysicalSteer()
 		
 		self.SteerMaster2:SetAngles( self:LocalToWorldAngles( Angle(0,math.Clamp(self.VehicleData[ "Steer" ],-self.CustomSteerAngle,self.CustomSteerAngle),0) ) )
 	end
-end
-
-function ENT:IsInitialized()
-	return (self.EnableSuspension == 1)
 end
 
 function ENT:EngineActive()
@@ -1371,11 +1324,11 @@ function ENT:SetOnSmoke( bOn )
 end
 
 function ENT:SetMaxHealth( nHealth )
-	self:SetNWFloat( "MaxHealth", nHealth )
+	self.MaxHealth = nHealth
 end
 
 function ENT:SetCurHealth( nHealth )
-	self:SetNWFloat( "Health", nHealth )
+	self:SetHP( nHealth )
 end
 
 function ENT:SetMaxFuel( nFuel )
