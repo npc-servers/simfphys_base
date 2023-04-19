@@ -12,6 +12,7 @@ local hud_x = CreateClientConVar( "cl_simfphys_hud_offset_x", "0", true, false )
 local hud_y = CreateClientConVar( "cl_simfphys_hud_offset_y", "0", true, false )
 local hud_mph = CreateClientConVar( "cl_simfphys_hudmph", "0", true, false )
 local hud_mpg = CreateClientConVar( "cl_simfphys_hudmpg", "0", true, false )
+local hud_realspeed = CreateClientConVar( "cl_simfphys_hudrealspeed", "0", true, false )
 local autostart = CreateClientConVar( "cl_simfphys_autostart", "1", true, true )
 
 local mousesteer = CreateClientConVar( "cl_simfphys_mousesteer", "0", true, true )
@@ -600,71 +601,7 @@ local function buildserversettingsmenu( self )
 	Background:SetSize( 350, y )
 end
 
-
-hook.Add( "lvsOnPopulateVehicles", "AddEntityContent", function( pnlContent, lvsNode )
-
-	local tree = lvsNode:AddNode( "Cars", "icon16/car.png" )
-	tree.DoClick = function( self )
-		pnlContent:SwitchPanel( self.PropPanel )
-	end
-
-	local Categorised = {}
-
-	-- Add this list into the tormoil
-	local Vehicles = list.Get( "simfphys_vehicles" )
-	if Vehicles then
-		for k, v in pairs( Vehicles ) do
-
-			v.Category = v.Category or "Other"
-			Categorised[ v.Category ] = Categorised[ v.Category ] or {}
-			v.ClassName = k
-			v.PrintName = v.Name
-			table.insert( Categorised[ v.Category ], v )
-
-		end
-	end
-	--
-	-- Add a tree node for each category
-	--
-	for CategoryName, v in SortedPairs( Categorised ) do
-
-		-- Add a node to the tree
-		local node = tree:AddNode( CategoryName, "icon16/bricks.png" )
-		
-			-- When we click on the node - populate it using this function
-		node.DoPopulate = function( self )
-			
-			-- If we've already populated it - forget it.
-			if self.PropPanel then return end
-			
-			-- Create the container panel
-			self.PropPanel = vgui.Create( "ContentContainer", pnlContent )
-			self.PropPanel:SetVisible( false )
-			self.PropPanel:SetTriggerSpawnlistChange( false )
-			
-			for k, ent in SortedPairsByMemberValue( v, "PrintName" ) do
-				
-				spawnmenu.CreateContentIcon( "simfphys_vehicles", self.PropPanel, {
-					nicename	= ent.PrintName or ent.ClassName,
-					spawnname	= ent.ClassName,
-					material	= "entities/"..ent.ClassName..".png",
-					admin		= ent.AdminOnly
-				} )
-				
-			end
-			
-		end
-		
-		-- If we click on the node populate it and switch to it.
-		node.DoClick = function( self )
-			
-			self:DoPopulate()
-			pnlContent:SwitchPanel( self.PropPanel )
-			
-		end
-
-	end
-	
+hook.Add( "lvsInitializeCarTab", "SimfphysMenus", function( pnlContent, tree )
 	-- KEYBOARD
 	local node = tree:AddNode( "Controls", "icon16/keyboard.png" )
 	node.DoPopulate = function( self )
@@ -735,39 +672,4 @@ hook.Add( "lvsOnPopulateVehicles", "AddEntityContent", function( pnlContent, lvs
 		self:DoPopulate()
 		pnlContent:SwitchPanel( self.PropPanel )
 	end
-end )
-
-
-spawnmenu.AddContentType( "simfphys_vehicles", function( container, obj )
-	if not obj.material then return end
-	if not obj.nicename then return end
-	if not obj.spawnname then return end
-
-	local icon = vgui.Create( "ContentIcon", container )
-	icon:SetContentType( "simfphys_vehicles" )
-	icon:SetSpawnName( obj.spawnname )
-	icon:SetName( obj.nicename )
-	icon:SetMaterial( obj.material )
-	icon:SetAdminOnly( obj.admin )
-	icon:SetColor( Color( 0, 0, 0, 255 ) )
-	icon.DoClick = function()
-		RunConsoleCommand( "simfphys_spawnvehicle", obj.spawnname )
-		surface.PlaySound( "ui/buttonclickrelease.wav" )
-	end
-	icon.OpenMenu = function( icon )
-
-		local menu = DermaMenu()
-			menu:AddOption( "Copy to Clipboard", function() SetClipboardText( obj.spawnname ) end )
-			--menu:AddSpacer()
-			--menu:AddOption( "Delete", function() icon:Remove() hook.Run( "SpawnlistContentChanged", icon ) end )
-		menu:Open()
-
-	end
-	
-	if IsValid( container ) then
-		container:Add( icon )
-	end
-
-	return icon
-
 end )
