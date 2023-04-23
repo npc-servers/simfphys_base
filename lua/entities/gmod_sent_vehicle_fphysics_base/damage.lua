@@ -2,16 +2,16 @@ function ENT:ApplyDamage( damage, type )
 	if type == DMG_BLAST then 
 		damage = damage * 10
 	end
-	
+
 	if type == DMG_BULLET then 
 		damage = damage * 2
 	end
-	
+
 	local MaxHealth = self:GetMaxHealth()
 	local CurHealth = self:GetCurHealth()
-	
+
 	local NewHealth = math.max( math.Round(CurHealth - damage,0) , 0 )
-	
+
 	if NewHealth <= (MaxHealth * 0.6) then
 		if NewHealth <= (MaxHealth * 0.3) then
 			self:SetOnFire( true )
@@ -20,52 +20,64 @@ function ENT:ApplyDamage( damage, type )
 			self:SetOnSmoke( true )
 		end
 	end
-	
+
 	if MaxHealth > 30 and NewHealth <= 31 then
 		if self:EngineActive() then
 			self:DamagedStall()
 		end
 	end
-	
+
 	if NewHealth <= 0 then
 		if (type ~= DMG_CRUSH and type ~= DMG_GENERIC) or damage > MaxHealth then
-			
+
 			self:ExplodeVehicle()
-			
+
 			return
 		end
-		
+
 		if self:EngineActive() then
 			self:DamagedStall()
 		end
-		
+
 		self:SetCurHealth( 0 )
-		
+
 		return
 	end
-	
+
 	self:SetCurHealth( NewHealth )
 end
 
 function ENT:HurtPlayers( damage )
 	if not simfphys.pDamageEnabled then return end
-	
+
 	local Driver = self:GetDriver()
-	
+
 	if IsValid( Driver ) then
 		if self.RemoteDriver ~= Driver then
-			Driver:TakeDamage(damage, Entity(0), self )
+			local dmginfo = DamageInfo()
+			dmginfo:SetDamage( damage )
+			dmginfo:SetAttacker( game.GetWorld() )
+			dmginfo:SetInflictor( self )
+			dmginfo:SetDamageType( DMG_DIRECT )
+
+			Driver:TakeDamageInfo( dmginfo )
 		end
 	end
-	
-	if self.PassengerSeats then
-		for i = 1, table.Count( self.PassengerSeats ) do
-			local Passenger = self.pSeat[i]:GetDriver()
-			
-			if IsValid(Passenger) then
-				Passenger:TakeDamage(damage, Entity(0), self )
-			end
-		end
+
+	if not istable( self.PassengerSeats ) then return end
+
+	for i = 1, table.Count( self.PassengerSeats ) do
+		local Passenger = self.pSeat[i]:GetDriver()
+		
+		if not IsValid(Passenger) then continue end
+
+		local dmginfo = DamageInfo()
+		dmginfo:SetDamage( damage )
+		dmginfo:SetAttacker( game.GetWorld() )
+		dmginfo:SetInflictor( self )
+		dmginfo:SetDamageType( DMG_DIRECT )
+
+		Passenger:TakeDamageInfo( dmginfo )
 	end
 end
 

@@ -19,7 +19,7 @@ if SERVER then
 	include("simfphys/server/seatcontrols.lua")
 	include("simfphys/server/poseparameter.lua")
 	include("simfphys/server/joystick.lua")
-	include("simfphys/server/npc_relationshiphandler.lua")
+	include("simfphys/server/damage.lua")
 end
 	
 if CLIENT then
