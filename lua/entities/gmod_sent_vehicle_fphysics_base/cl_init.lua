@@ -1,10 +1,5 @@
 include("shared.lua")
 
-DEFINE_BASECLASS( "lvs_base" )
-
-function ENT:LVSCalcView( ply, pos, angles, fov, pod )
-end
-
 function ENT:Initialize()	
 	self.SmoothRPM = 0
 	self.OldDist = 0
@@ -18,19 +13,15 @@ function ENT:Initialize()
 	self.DamageSnd = CreateSound(self, "simulated_vehicles/engine_damaged.wav")
 
 	self.EngineSounds = {}
-
-	BaseClass.Initialize( self )
 end
 
 function ENT:Think()
-	BaseClass.Think( self )
-
 	local curtime = CurTime()
 	
 	local Active = self:GetActive()
 	local Throttle = self:GetThrottle()
 	local LimitRPM = self:GetLimitRPM()
-
+	
 	self:ManageSounds( Active, Throttle, LimitRPM )
 
 	self.RunNext = self.RunNext or 0
@@ -40,8 +31,12 @@ function ENT:Think()
 		
 		self.RunNext = curtime + 0.06
 	end
-
+	
 	self:SetPoseParameters( curtime )
+	
+	self:NextThink( curtime )
+	
+	return true
 end
 
 function ENT:CalcFlasher()
@@ -74,7 +69,6 @@ end
 
 function ENT:GetFlasher()
 	self.flashnum = self.flashnum or 0
-
 	return self.flashnum
 end
 
@@ -135,7 +129,6 @@ end
 
 function ENT:GetRPM()
 	local RPM = self.SmoothRPM and self.SmoothRPM or 0
-
 	return RPM
 end
 
@@ -483,6 +476,10 @@ function ENT:Backfire( damaged )
 	end
 end
 
+function ENT:Draw()
+	self:DrawModel()
+end
+
 function ENT:SetSoundPreset(index)
 	local vehiclelist = list.Get( "simfphys_vehicles" )[self:GetSpawn_List()] or false
 	
@@ -668,8 +665,6 @@ function ENT:SaveStopSounds()
 end
 
 function ENT:OnRemove()
-	BaseClass.OnRemove( self )
-
 	self:SaveStopSounds()
 	
 	if self.smokesnd then
