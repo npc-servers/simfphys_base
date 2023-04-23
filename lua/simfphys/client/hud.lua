@@ -537,7 +537,7 @@ local function PaintSeatSwitcher( ent, pSeats, SeatCount )
 		local I = Pod:GetNWInt( "pPodIndex", -1 )
 		if I >= 0 then
 			if I == MySeat then
-				draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(0,127,255,100 + 50 * smHider) )
+				draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(127,0,0,100 + 50 * smHider) )
 			else
 				draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(0,0,0,100 + 50 * smHider) )
 			end
